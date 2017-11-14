@@ -22,6 +22,10 @@ if (!defined('OT_EXPIRE'))
 	define('OT_EXPIRE', 7*24); // in hours 
 if (!defined('OT_KEY_LENGTH'))
 	define('OT_KEY_LENGTH', 32); // length of our keys (aka hashes)
+if (!defined('OT_MAX_PASSWORD_RETRIES'))
+	define('OT_MAX_PASSWORD_RETRIES', 5); // 5 attempts before message is deleted
+if (OT_MAX_PASSWORD_RETRIES>9)
+	die('OT_MAX_PASSWORD_RETRIES must be less than 10');
 
 /*
 if (!defined('OT_SECRET_STATS'))
@@ -98,22 +102,54 @@ function expire_messages() {
 	}
 }
 
-function template($message) {
+function templateSimple($message) {
 	// sanitises the message to ensure it's html safe. eg < becomes &lt;
-	templateRawHtml(htmlspecialchars($message));
+	templateHtml(htmlspecialchars($message));
 }
-function templateRawHtml($message) {
+function templateLoad($file) {
+	ob_start();
+	include($file);
+	templateHtml(ob_get_clean());
+}
+function templateHtml($contents) { // NB: This parameter's name is important. It is used in the template itself
 	// uses the template, allowing unescaped HTML to be provided
-	$contents = $message;
 	require('template.php');
 }
-
-function calc_expiry()
-{
+function calc_expiry() {
 	$expiry = new DateTime("now");
 	$expiry->add(new DateInterval('PT'. OT_EXPIRE . 'H'));
 	return date('D, d M Y H:i', $expiry->getTimestamp());
 }
+
+// hmac_xxx() from https://paragonie.com/blog/2015/05/using-encryption-and-authentication-correctly
+// we only really need message tampering validation
+if(!function_exists('hash_equals')) {
+  function hash_equals($str1, $str2) {
+    if(strlen($str1) != strlen($str2)) {
+      return false;
+    } else {
+      $res = $str1 ^ $str2;
+      $ret = 0;
+      for($i = strlen($res) - 1; $i >= 0; $i--) $ret |= ord($res[$i]);
+      return !$ret;
+    }
+  }
+}
+
+function hmac_sign($message, $key)
+{
+    return hash_hmac('sha256', $message, $key) . $message;
+}
+function hmac_verify($bundle, $key)
+{
+    $msgMAC = mb_substr($bundle, 0, 64, '8bit');
+    $message = mb_substr($bundle, 64, null, '8bit');
+    return hash_equals(
+        hash_hmac('sha256', $message, $key),
+        $msgMAC
+    );
+}
+
 
 function main() {
 	$id = '';
@@ -122,10 +158,20 @@ function main() {
 		$id = urldecode($_GET["id"]);
 	}
 
-	$expiry_time = calc_expiry();
 
 	if ($id!=='' && preg_match('/^[a-f0-9]{'.OT_KEY_LENGTH.'}$/i', $id)) {
 		// a valid _seeming_ id
+		$password = '';
+		if (isset($_GET["pwd"])) { // we have/need a password
+			if (!empty($_POST) && !empty($_POST["password"])) {
+				$password = $_POST["password"];
+				// continue loading
+			}
+			else {
+				templateLoad('password.php');
+				die();
+			}
+		}
 
 		// does it exist as a file?
 		if (!file_exists(OT_PATH_CURRENT . $id)) {
@@ -135,20 +181,20 @@ function main() {
 				{
 					// show the contents of the expired message, if it exists
 					$message = file_get_contents(OT_PATH_USED. $id);
-					templateRawHtml('<p>The details of the used message are:</p><div id="message">'.$message.'</div>');
+					templateHtml('<p>The details of the used message are:</p><div id="message">'.$message.'</div>');
 				}
 				else 
 				{
 					// only found as an expired/used link
 					http_response_code(410);
-					templateRawHTML('Expired/Already Used.<br>If you believe this to be an error, please contact us immediately.<br>Nevertheless, the message no longer exists.');
+					templateHtml('Expired/Already Used.<br>If you believe this to be an error, please contact us immediately.<br>Nevertheless, the message no longer exists.');
 				}
 
 			}
 			else {
 				http_response_code(404);
 				//include('my_404.php'); // provide your own HTML for the error page
-				template('Not found');
+				templateSimple('Not found');
 			}
 			die();
 		}
@@ -156,8 +202,36 @@ function main() {
 		{
 			// a valid filename exists
 			$message = file_get_contents(OT_PATH_CURRENT. $id);
+
+			if (!empty($password)) {
+				// the message contains:
+				//  - how many attempts, 1st char
+				//  - hmac sig
+				//  - message
+				$attempts = intval(substr($message, 0, 1));
+				$message = substr($message, 1);
+				if (!hmac_verify($message, $password)) {
+					$attempts++;
+					if ($attempts >= OT_MAX_PASSWORD_RETRIES) {
+						expire($id); // don't let it be read again!			
+						http_response_code(410);
+						templateHtml('Too many wrong tries. Message has been deleted.<br>Your IP has been recorded.');
+						die();
+					}
+					// write the attempt out to file again & reshow the password box
+					$message = $attempts.$message;
+					file_put_contents(OT_PATH_CURRENT. $id, $message);
+					templateLoad('password.php');
+					die();
+				}
+				else {
+					// all is good. verification of password ok.
+				    $message = mb_substr($message, 64, null, '8bit');
+				}
+			}
+
 			expire($id); // don't let it be read again!
-			templateRawHtml('<p>Your unique message is:</p><div id="message">'.htmlspecialchars($message).'</div><p class="small">For security purposes, this message has already been deleted and cannot be retrieved.</p>');
+			templateHtml('<p>Your unique message is:</p><div id="message">'.htmlspecialchars($message).'</div><p class="small">For security purposes, this message has already been deleted and cannot be retrieved.</p>');
 		}
 	}
 	else if (!empty($_POST) && !empty($_POST["message"]))
@@ -167,25 +241,37 @@ function main() {
 		while (file_exists(OT_PATH_CURRENT. $file) || file_exists(OT_PATH_USED. $file)) {
 			$file =  bin2hex(random_bytes(OT_KEY_LENGTH));
 			if ($n++ > 100) {
-				template('Error. Can\'t generate a unique filename: '.$file);
+				templateSimple('Error. Can\'t generate a unique filename: '.$file);
 				die();
 			}
 		}
 		$message  = $_POST["message"];
 		$email    = $_POST['email'];
-		//$password = $_POST['password'];
+		$password = $_POST['password'];
+		if (!empty($password)) {
+			// the message contains:
+			//  - how many attempts, 1st char. set to 0
+			//  - hmac sig
+			//  - message
+			$message = '0'.hmac_sign($message, $password); 
+		}
 
 		file_put_contents(OT_PATH_CURRENT. $file, $message);
 		if (!file_exists(OT_PATH_CURRENT. $file)) {
-			template('Error. Failed to save file: '.$file);
+			templateSimple('Error. Failed to save file: '.$file);
 			die();
 		}
 		$url = OT_BASE_URL.$file ;
+		if (!empty($password))
+		{
+			$url .= "&pwd=1";
+		}
 
 		$contents = 'The message<sup>*</sup> is now available as:<br><code>'.$url.'</code><br>';
 
 		if (!empty($email)) {
 			// send the email
+			$expiry_time = calc_expiry();
 			$email_str = "A secure message has been sent to you that you can retrieve only once. You can retrieve it from this url:\n".$url;
 
 			$email_str .= "\n\nIt is recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire on ".$expiry_time.
@@ -193,19 +279,17 @@ function main() {
 			//$email_str = str_replace('\n', '\r\n', $email_str);
 			if (!mail($email, 'One Time Message', $email_str)) {
 				http_response_code(501);
-				templateRawHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.<br><br>The contents of the email were:<div id="message">'.htmlspecialchars($email_str)."</div>");
+				templateHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
 				die();
 			}
 			$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';
 		}
 		$contents .= '<br><br><p class="small"><sup>*</sup> Don\'t open this link, otherwise you\'ll lock out the recipient!</p>';
-		templateRawHtml($contents);
+		templateHtml($contents);
 	}
 	else
 	{
-		ob_start();
-		include('form.php');
-		templateRawHtml(ob_get_clean());
+		templateLoad('form.php');
 	}
 }
 

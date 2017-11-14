@@ -182,7 +182,7 @@ function main() {
 		}
 		$url = OT_BASE_URL.$file ;
 
-		$contents = 'The message is now available as:<br><code>'.$url.'</code><br>';
+		$contents = 'The message<sup>*</sup> is now available as:<br><code>'.$url.'</code><br>';
 
 		if (!empty($email)) {
 			// send the email
@@ -198,6 +198,7 @@ function main() {
 			}
 			$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';
 		}
+		$contents .= '<br><br><p class="small"><sup>*</sup> Don\'t open this link, otherwise you\'ll lock out the recipient!</p>';
 		templateRawHtml($contents);
 	}
 	else

@@ -137,12 +137,22 @@ function templateRawHtml($message) {
 	require('template.php');
 }
 
+function calc_expiry()
+{
+	$expiry = new DateTime("now");
+	$expiry->add(new DateInterval('PT'. OT_EXPIRE . 'H'));
+	return date('D, d M Y H:i', $expiry->getTimestamp());
+}
+
 function main() {
 	$id = '';
 	if (isset($_GET["id"])) {
 		//echo 'id is set: '. $_GET["id"];
 		$id = urldecode($_GET["id"]);
 	}
+
+	$expiry_time = calc_expiry();
+
 	if ($id!=='' && preg_match('/^[a-f0-9]{'.OT_KEY_LENGTH.'}$/i', $id)) {
 		// a valid _seeming_ id
 
@@ -201,15 +211,17 @@ function main() {
 		}
 		$url = getUrl().$file ;
 
-		$contents = 'The message is now available as:<br><code>'.$url.'</code>';
+		$contents = 'The message is now available as:<br><code>'.$url.'</code><br>';
 
 		if (!empty($email)) {
 			// send the email
-			$email_str = "A secure message has been sent to you that you can retrieve only once: ".$url."\n\nIt is highly recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire if left unread.\n\nIf this message was not expected, please disregard it.\nDo not reply to this email.";
+			$email_str = "A secure message has been sent to you that you can retrieve only once: ".$url.
+					"\n \nIt is highly recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire on ".$expiry_time.
+					".\nIf this message was not expected, please disregard it.\nDo not reply to this email.\n\nYours truly,\nOne Time Message";
 			//$email_str = str_replace('\n', '\r\n', $email_str);
 			if (!mail($email, 'One Time Message', $email_str)) {
 				http_response_code(501);
-				templateRawHtml($contents.'<br><br>Unfortunately, the email could not be sent due to server configuration.');
+				templateRawHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
 				die();
 			}
 			$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';

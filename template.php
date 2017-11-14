@@ -77,7 +77,7 @@ if (!defined('OT'))
 	<div id="contents">
 		<?php echo $contents ?>
 	</div>
-	<div id="footer">Copyright &copy; kodespace 2017. All rights reserved</div>
+	<div id="footer">Copyright &copy; kodespace.com 2017. All rights reserved</div>
 </div>
 </body>
 </html>

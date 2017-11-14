@@ -1,7 +1,6 @@
 <?php
 if (!defined('OT'))
 	die();
-
 ?>
 <form method="POST">
 	<label for='message'>Enter your one time message:</label>
@@ -12,6 +11,6 @@ if (!defined('OT'))
 
 	<!--<label for='password'>Optionally, enter a password to encrypt the message:</label>
 	<input name='password' type='password'/><br>-->
-
+	<p class="small">This message will expire on: <?php echo $expiry_time;?>.</p>
 	<input type="submit" value="Submit"/>
 </form>

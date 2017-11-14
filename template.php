@@ -68,7 +68,6 @@ if (!defined('OT'))
 		#outer>div { padding: 2em 4% };
 	}
 	</style>
-	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body><div id="outer">
 	<div id="banner">

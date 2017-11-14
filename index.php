@@ -2,15 +2,16 @@
 // Copyright (c) kodespace.com 2017. All rights reserved.
 
 define('OT', true); // this package
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // Read config
 require_once('config.php');
 
 if (!defined('OT_BASE_PATH'))
 	die('Incorrect configuration. OT_BASE_PATH not defined');
+if (!defined('OT_BASE_URL'))
+	die('Incorrect configuration. OT_BASE_URL not defined');
+if (!defined('OT_RECAPTCHA'))
+	die('Incorrect configuration. OT_RECAPTCHA not defined');
 
 if (!defined('OT_PATH_CURRENT'))
 	define('OT_PATH_CURRENT', OT_BASE_PATH . 'current/'); // path to current list of one time messages
@@ -40,36 +41,6 @@ if (!file_exists(OT_PATH_USED)) {
 	if (!mkdir(OT_PATH_USED, 0770, true)) {
 		die('Failed to create: '. OT_PATH_USED);
 	}
-}
-
-function getUrl() {
-	$url = '';
-
-	if (isset($_SERVER['HTTPS']) && filter_var($_SERVER['HTTPS'], FILTER_VALIDATE_BOOLEAN))
-	    $url .= 'https';
-	else
-	    $url .= 'http';
-
-	$url .= '://';
-
-	if (isset($_SERVER['HTTP_HOST']))
-	    $url .= $_SERVER['HTTP_HOST'];
-	elseif (isset($_SERVER['SERVER_NAME']))
-	    $url .= $_SERVER['SERVER_NAME'];
-	else
-	    trigger_error ('Could not get URL from $_SERVER vars');
-
-
-	if ($_SERVER['SERVER_PORT'] != '80')
-	  $url .= ':'.$_SERVER["SERVER_PORT"];
-
-	if (isset($_SERVER['REQUEST_URI']))
-	    $url .= $_SERVER['REQUEST_URI'];
-	elseif (isset($_SERVER['PHP_SELF']))
-	    $url .= $_SERVER['PHP_SELF'];
-	elseif (isset($_SERVER['REDIRECT_URL']))
-	    $url .= $_SERVER['REDIRECT_URL'];
-    return $url;	
 }
 
 
@@ -186,7 +157,7 @@ function main() {
 			// a valid filename exists
 			$message = file_get_contents(OT_PATH_CURRENT. $id);
 			expire($id); // don't let it be read again!
-			templateRawHtml('<p>Your unique message is:</p><div id="message">'.$message.'</div><p class="small">For security purposes, this message has already been deleted and cannot be retrieved.</p>');
+			templateRawHtml('<p>Your unique message is:</p><div id="message">'.htmlspecialchars($message).'</div><p class="small">For security purposes, this message has already been deleted and cannot be retrieved.</p>');
 		}
 	}
 	else if (!empty($_POST) && !empty($_POST["message"]))
@@ -209,7 +180,7 @@ function main() {
 			template('Error. Failed to save file: '.$file);
 			die();
 		}
-		$url = getUrl().$file ;
+		$url = OT_BASE_URL.$file ;
 
 		$contents = 'The message is now available as:<br><code>'.$url.'</code><br>';
 

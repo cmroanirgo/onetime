@@ -2,9 +2,10 @@
 // Copyright (c) kodespace.com 2017. All rights reserved.
 
 define('OT', true); // this package
+define('OT_SRC_PATH', '../private/includes/');
 
 // Read config
-require_once('config.php');
+require_once(OT_SRC_PATH.'config.php');
 
 if (!defined('OT_BASE_PATH'))
 	die('Incorrect configuration. OT_BASE_PATH not defined');
@@ -108,12 +109,12 @@ function templateSimple($message) {
 }
 function templateLoad($file) {
 	ob_start();
-	include($file);
+	include(OT_SRC_PATH.'views/'.$file);
 	templateHtml(ob_get_clean());
 }
 function templateHtml($contents) { // NB: This parameter's name is important. It is used in the template itself
 	// uses the template, allowing unescaped HTML to be provided
-	require('template.php');
+	require(OT_SRC_PATH.'views/template.php');
 }
 function calc_expiry() {
 	$expiry = new DateTime("now");
@@ -193,7 +194,6 @@ function main() {
 			}
 			else {
 				http_response_code(404);
-				//include('my_404.php'); // provide your own HTML for the error page
 				templateSimple('Not found');
 			}
 			die();

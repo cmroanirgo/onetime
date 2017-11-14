@@ -48,7 +48,7 @@ form { position: relative; width: 100%; }
 form>* { display: block; font-size: 0.8em; }
 textarea { width: 80%; height:6em; display: block; padding:0.2em;font-family: sans-serif;}
 label:not(:first-of-type) { margin-top: 1em; }
-input[type='email'], input[type='password'] { padding: 0 0.2em; width:80%; }
+input[type='text'], input[type='email'], input[type='password'] { padding: 0 0.2em; width:80%; }
 button { padding: 0.3em; font-size: 1em; margin-top:1em;}
 
 .small { font-size: 0.6em; }

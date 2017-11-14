@@ -22,7 +22,7 @@ $expiry_time = calc_expiry();
 	<input name='email' type='email'/><br>
 
 	<label for='password' class='small'>Optionally, enter a long password<sup>*</sup>:</label>
-	<input name='password' type='password' class='small'/><br>
+	<input name='password' type='text' class='small'/><br>
 	
 	<label class="small">This message will expire on: <?php echo $expiry_time;?>.</label>
 	<button class="g-recaptcha" data-sitekey="<?php echo OT_RECAPTCHA; ?>" data-callback="onSubmit">Submit</button>

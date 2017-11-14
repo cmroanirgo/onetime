@@ -11,7 +11,6 @@ if (!defined('OT'))
 	* { margin:0; padding:0; box-sizing:border-box;}
 	html,body{height:100%;}
 	body { min-height:100%;font-size:18pt; font-family: sans-serif,sans,Arial;}
-	body>div>div { padding: 2em 20%; word-spacing: nowrap}
 	#outer {
 		min-height:100%;
 		display: -webkit-box;
@@ -22,6 +21,7 @@ if (!defined('OT'))
 		-webkit-flex-direction: column;
 		flex-direction: column;
 	}
+	#outer>div { padding: 2em 20%; word-spacing: nowrap}
 	#banner,#footer { background-color: #5690f5; color:white; }
 	#banner { height:6em; }
 	#footer { height:2em; 
@@ -55,19 +55,20 @@ if (!defined('OT'))
 
 	label[for='password'] { margin-top: 1em; font-size:0.6em;}
 	input[type='password'] { padding: 0 0.3em; font-size:0.6em; width:80%;}
-	input[type='submit'] { padding: 0.3em; font-size: 1em; margin-top:1em;}
+	input[type='submit'],button { padding: 0.3em; font-size: 1em; margin-top:1em;}
 
 	@media only screen and (max-width: 760px) {
 		body { font-size: 15pt; }
-		body>div>div { padding: 2em 12% };
+		#outer>div { padding: 2em 12% };
 	}
 
 
 	@media only screen and (max-width: 550px) {
 		body { font-size: 13pt; }
-		body>div>div { padding: 2em 4% };
+		#outer>div { padding: 2em 4% };
 	}
 	</style>
+	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body><div id="outer">
 	<div id="banner">

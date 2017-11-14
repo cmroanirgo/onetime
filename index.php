@@ -215,13 +215,14 @@ function main() {
 
 		if (!empty($email)) {
 			// send the email
-			$email_str = "A secure message has been sent to you that you can retrieve only once: ".$url.
-					"\n \nIt is highly recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire on ".$expiry_time.
-					".\nIf this message was not expected, please disregard it.\nDo not reply to this email.\n\nYours truly,\nOne Time Message";
+			$email_str = "A secure message has been sent to you that you can retrieve only once. You can retrieve it from this url:\n".$url;
+
+			$email_str .= "\n\nIt is recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire on ".$expiry_time.
+					".\n\nIf this message was not expected, please disregard it.\n\nYours truly,\nOne Time Message\n(Please do not reply to this email)";
 			//$email_str = str_replace('\n', '\r\n', $email_str);
 			if (!mail($email, 'One Time Message', $email_str)) {
 				http_response_code(501);
-				templateRawHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
+				templateRawHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.<br><br>The contents of the email were:<div id="message">'.htmlspecialchars($email_str)."</div>");
 				die();
 			}
 			$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';

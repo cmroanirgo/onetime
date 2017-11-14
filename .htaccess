@@ -1,0 +1,10 @@
+RewriteEngine On
+
+#1) redirect the client from "/index.php/foo/bar" to "/foo/bar"
+RewriteCond %{THE_REQUEST} /index\.php/(.+)\sHTTP [NC]
+RewriteRule ^ /%1 [NE,L,R]
+
+#2)internally map "/foo/bar" to "/index.php?id=/foo/bar"
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)$ /index.php?id=$1 [L]

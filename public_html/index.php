@@ -11,8 +11,6 @@ if (!defined('OT_BASE_PATH'))
 	die('Incorrect configuration. OT_BASE_PATH not defined');
 if (!defined('OT_BASE_URL'))
 	die('Incorrect configuration. OT_BASE_URL not defined');
-if (!defined('OT_RECAPTCHA'))
-	die('Incorrect configuration. OT_RECAPTCHA not defined');
 
 if (!defined('OT_PATH_CURRENT'))
 	define('OT_PATH_CURRENT', OT_BASE_PATH . 'current/'); // path to current list of one time messages
@@ -25,8 +23,8 @@ if (!defined('OT_KEY_LENGTH'))
 	define('OT_KEY_LENGTH', 32); // length of our keys (aka hashes)
 if (!defined('OT_MAX_PASSWORD_RETRIES'))
 	define('OT_MAX_PASSWORD_RETRIES', 5); // 5 attempts before message is deleted
-if (OT_MAX_PASSWORD_RETRIES>9)
-	die('OT_MAX_PASSWORD_RETRIES must be less than 10');
+if (OT_MAX_PASSWORD_RETRIES<1 || OT_MAX_PASSWORD_RETRIES>9)
+	die('OT_MAX_PASSWORD_RETRIES must be less than 10 and more than 0');
 
 /*
 if (!defined('OT_SECRET_STATS'))
@@ -212,7 +210,7 @@ function main() {
 				$message = substr($message, 1);
 				if (!hmac_verify($message, $password)) {
 					$attempts++;
-					if ($attempts >= OT_MAX_PASSWORD_RETRIES) {
+					if ($attempts > OT_MAX_PASSWORD_RETRIES) {
 						expire($id); // don't let it be read again!			
 						http_response_code(410);
 						templateHtml('Too many wrong tries. Message has been deleted.<br>Your IP has been recorded.');

@@ -13,13 +13,13 @@ if (!defined('OT'))
 </head>
 <body><div id="outer">
 	<div id="banner">
-		<h2>One Time Messages</h2>
+		<h2><a href="<?php echo OT_BASE_URL;?>">One Time Messages</a></h2>
 		<i>For the security conscious</i>
 	</div>
 	<div id="contents">
 		<?php echo $contents ?>
 	</div>
-	<div id="footer">Copyright &copy; <a href="https://kodespace.com">kodespace.com</a> 2017. All rights reserved</div>
+	<div id="footer">Copyright &copy; <a href="https://kodespace.com">kodespace.com</a> 2017. All rights reserved. <a href="https://github.com/cmroanirgo/onetime" ><img src="github12.png" alt="source on github"/></a></div>
 </div>
 </body>
 </html>

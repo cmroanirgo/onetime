@@ -6,10 +6,11 @@ $expiry_time = calc_expiry();
 
 ?>
 <style type="text/css">
-button.small { display: inline; }
 #password { display: inline-block;}
 </style>
+<?php if (defined(OT_RECAPTCHA)) { ?>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<?php } ?>
 <script>
 	function el(id) { return document.getElementById(id); }
 	function onSubmit(token) {
@@ -18,11 +19,12 @@ button.small { display: inline; }
 
 	function wordIsh(word_length, num_words) {
 		// Copyright (c) kodespace.com. All rights reserved
+		// A monkeys program might be better ;) ie a tree of letter choices based on real texts
 		var MAX_RAND = 255;
 		// the 'popularity' is made up & has no basis in science ;)
 		var vowelish = {
 			list: [
-				{ popularity: 10, list: 'aeiou'.split('') }, // 10:3 chance of hitting a vowel
+				{ popularity: 10, list: 'aeiou'.split('') }, // 10:13 chance of hitting a vowel
 				{ popularity: 2, list: ['oo', 'ee', 'ea']},
 				{ popularity: 1, list: ['ae','ai','ao','au', 'eo', 'ia','io','iu', 'ou','oe','ua', 'ue', 'ui', 'uo'] }
 			]
@@ -94,10 +96,10 @@ button.small { display: inline; }
 	<label for='email'>Optional. E-mail address of the recipient:</label>
 	<input name='email' type='email'/><br>
 
-	<label for='password' class='small'>Optional. Enter a long password<sup>*</sup>:</label>
+	<label for='password' class='small'>Optional. Password<sup>*</sup>:</label>
 	<input name='password' id="password" type='text' class='small'/><button class="small" id="generate" onclick="onGenerate();return false;">Generate</button><br>
 	
 	<label class="small">This message will expire on: <?php echo $expiry_time;?>.</label>
 	<button class="g-recaptcha" data-sitekey="<?php echo OT_RECAPTCHA; ?>" data-callback="onSubmit">Submit</button>
-	<p class='small italics'><sup>*</sup>You will need to SMS your password to the recipient manually.</p>
+	<p class='small italics'><sup>*</sup>You will need to SMS your password to the recipient manually. The longer, the better.</p>
 </form>

@@ -21,12 +21,14 @@ background: -webkit-linear-gradient(-45deg, #71a2f7 0%,#5c91ed 13%,#5690f5 65%,#
 background: linear-gradient(135deg, #71a2f7 0%,#5c91ed 13%,#5690f5 65%,#5c91ed 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#71a2f7', endColorstr='#5c91ed',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
 }
-#footer * { color:white;}
+#footer *, #banner * { color:white; }
+#banner a { text-decoration:none;}
 #banner { height:6em; }
 div#footer { height:2em; 
 		padding-top: 0.5em; 
 		padding-bottom:0; 
 		font-size:9pt;}
+#footer img { vertical-align: middle;}
 
 #contents { 
 	-webkit-box-flex: 1;
@@ -49,7 +51,8 @@ form>* { display: block; font-size: 0.8em; }
 textarea { width: 80%; height:6em; display: block; padding:0.2em;font-family: sans-serif;}
 label:not(:first-of-type) { margin-top: 1em; }
 input[type='text'], input[type='email'], input[type='password'] { padding: 0 0.2em; width:80%; }
-button { padding: 0.3em; font-size: 1em; margin-top:1em;}
+button { padding: 0.2em 0.3em; font-size: 1em; margin:0.5em 0;}
+button.small { display: inline; margin-top: 0;}
 
 .small { font-size: 0.6em; }
 .italics { font-style:italic; }

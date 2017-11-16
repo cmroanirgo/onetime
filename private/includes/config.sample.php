@@ -14,6 +14,7 @@ define('OT_BASE_URL',  'https://somewhere.com/'); // trailing slash important!
 //define('OT_PATH_USED', OT_BASE_PATH . 'used/');
 //define('OT_MAX_PASSWORD_RETRIES', 5); // After this may tries, the message is deleted. For safety. Keep in range 1..10
 //define('OT_EMAIL_SENDER', 'no-reply@....'); // Uses whatever is default on your system for php mail()
+//define('OT_EMAIL_REPLY_TO', 'no-reply@....'); // Uses OT_EMAIL_SENDER, if defined, OR uses whatever is default on your system for php mail()
 
 
 //  Allow 'secret' access to *why* a message was used (ie expired, or read). It will list the IP and time of the message (the message itself is goooone)

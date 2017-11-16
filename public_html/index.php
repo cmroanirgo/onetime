@@ -292,7 +292,13 @@ function main() {
 				$email_str .= "\n\nYou should read the message as soon as possible, as it will expire on ".$expiry_time.
 						".\n\nIf this message was not expected, please disregard it.\n\nYours truly,\nOne Time Message System\n(Please do not reply to this email)";
 				//$email_str = str_replace('\n', '\r\n', $email_str);
-				if (!mail($email, 'One Time Message', $email_str)) {
+				$headers = '';
+				if (defined(OT_EMAIL_SENDER)) {
+					$headers = 'From: '. OT_EMAIL_SENDER . "\r\n" .
+								'Reply-To: '. OT_EMAIL_SENDER . "\r\n" .
+    							'X-Mailer: OneTimeMessage';
+				}
+				if (!mail($email, 'One Time Message', $email_str, $headers)) {
 					http_response_code(501);
 					templateHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
 					die();

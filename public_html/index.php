@@ -232,62 +232,82 @@ function main() {
 			templateHtml('<p>Your unique message is:</p><div id="message">'.htmlspecialchars($message).'</div><p class="small">For security purposes, this message has already been deleted and cannot be retrieved.</p>');
 		}
 	}
-	else if (!empty($_POST) && !empty($_POST["message"]))
-	{
-		$file =  randomToken(OT_KEY_LENGTH);
-		$n = 0;
-		while (file_exists(OT_PATH_CURRENT. $file) || file_exists(OT_PATH_USED. $file)) {
-			$file =  bin2hex(random_bytes(OT_KEY_LENGTH));
-			if ($n++ > 100) {
-				templateSimple('Error. Can\'t generate a unique filename: '.$file);
-				die();
-			}
-		}
-		$message  = $_POST["message"];
-		$email    = $_POST['email'];
-		$password = $_POST['password'];
-		if (!empty($password)) {
-			// the message contains:
-			//  - how many attempts, 1st char. set to 0
-			//  - hmac sig
-			//  - message
-			$message = '0'.hmac_sign($message, $password); 
-		}
+	else {
 
-		file_put_contents(OT_PATH_CURRENT. $file, $message);
-		if (!file_exists(OT_PATH_CURRENT. $file)) {
-			templateSimple('Error. Failed to save file: '.$file);
-			die();
-		}
-		$url = OT_BASE_URL.$file ;
-		if (!empty($password))
+		session_start();
+
+		//echo "\nPOST CSRF".$_POST["csrf_token"];
+		//echo "\nSESS CSRF".$_SESSION["csrf_token"];
+		if (!empty($_POST) && !empty($_POST["message"]) && !empty($_POST["csrf_token"]) && !empty($_SESSION["csrf_token"]) && $_POST["csrf_token"]==$_SESSION['csrf_token'])
 		{
-			$url .= "&pwd=1";
-		}
+			//reset the csrf session token.
+			unset($_SESSION['csrf_token']);
 
-		$contents = 'The message<sup>*</sup> is now available as:<br><code>'.$url.'</code><br>';
+			$file =  randomToken(OT_KEY_LENGTH);
+			$n = 0;
+			while (file_exists(OT_PATH_CURRENT. $file) || file_exists(OT_PATH_USED. $file)) {
+				$file =  bin2hex(random_bytes(OT_KEY_LENGTH));
+				if ($n++ > 100) {
+					templateSimple('Error. Can\'t generate a unique filename: '.$file);
+					die();
+				}
+			}
+			$message  = $_POST["message"];
+			$email    = $_POST['email'];
+			$password = $_POST['password'];
+			unset($_POST);
 
-		if (!empty($email)) {
-			// send the email
-			$expiry_time = calc_expiry();
-			$email_str = "A secure message has been sent to you that you can retrieve only once. You can retrieve it from this url:\n".$url;
+			if (!empty($password)) {
+				// the message contains:
+				//  - how many attempts, 1st char. set to 0
+				//  - hmac sig
+				//  - message
+				$message = '0'.hmac_sign($message, $password); 
+			}
 
-			$email_str .= "\n\nIt is recommended that you copy the contents of that message to a safe location as soon as possible, as it will also expire on ".$expiry_time.
-					".\n\nIf this message was not expected, please disregard it.\n\nYours truly,\nOne Time Message\n(Please do not reply to this email)";
-			//$email_str = str_replace('\n', '\r\n', $email_str);
-			if (!mail($email, 'One Time Message', $email_str)) {
-				http_response_code(501);
-				templateHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
+			file_put_contents(OT_PATH_CURRENT. $file, $message);
+			if (!file_exists(OT_PATH_CURRENT. $file)) {
+				templateSimple('Error. Failed to save file: '.$file);
 				die();
 			}
-			$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';
+			$url = OT_BASE_URL.$file ;
+			if (!empty($password))
+			{
+				$url .= "&pwd=1";
+			}
+
+			$contents = 'The message is now available as:<br><code class="small">'.$url.'</code> <sup class="small">*</sup><br>';
+			if (!empty($password)) {
+				$contents .= '<br><span class="small">The contents of this message are protected by the password:<br><code>'.$password.'</code></span><br>';
+			}
+
+			if (!empty($email)) {
+				// send the email
+				$expiry_time = calc_expiry();
+				$email_str = "A secure message has been sent to you that you can retrieve only once & will be deleted once you've read it. You can retrieve it from this url:\n".$url;
+				if (!empty($password)) {
+					$email_str .= "\nNote that the message requires a password to open. You should know it, or have received it by the person who sent you this message.";				
+				}
+
+				$email_str .= "\n\nYou should read the message as soon as possible, as it will expire on ".$expiry_time.
+						".\n\nIf this message was not expected, please disregard it.\n\nYours truly,\nOne Time Message System\n(Please do not reply to this email)";
+				//$email_str = str_replace('\n', '\r\n', $email_str);
+				if (!mail($email, 'One Time Message', $email_str)) {
+					http_response_code(501);
+					templateHtml($contents.'<br>Unfortunately, the email could not be sent due to server configuration.');
+					die();
+				}
+				$contents .= '<br>An email has been sent to: <b>'.htmlspecialchars($email).'</b>';
+			}
+			$contents .= '<br><br><p class="small"><sup>*</sup> Don\'t open this link, otherwise you\'ll lock out the recipient!</p>';
+			templateHtml($contents);
 		}
-		$contents .= '<br><br><p class="small"><sup>*</sup> Don\'t open this link, otherwise you\'ll lock out the recipient!</p>';
-		templateHtml($contents);
-	}
-	else
-	{
-		templateLoad('form.php');
+		else
+		{
+		    $_SESSION['csrf_token'] = randomToken(); // make a new csrf token every time we open the form
+		    unset($_POST);
+			templateLoad('form.php');
+		}
 	}
 }
 

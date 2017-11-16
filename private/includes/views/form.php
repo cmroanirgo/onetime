@@ -8,7 +8,7 @@ $expiry_time = calc_expiry();
 <style type="text/css">
 #password { display: inline-block;}
 </style>
-<?php if (defined(OT_RECAPTCHA)) { ?>
+<?php if (defined('OT_RECAPTCHA')) { ?>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <?php } ?>
 <script>

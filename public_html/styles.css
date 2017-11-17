@@ -35,6 +35,15 @@ div#footer { height:2em;
 	-webkit-flex: 1;
 	flex: 1;
 }
+.errors {
+	border:1px solid #a00;
+	background-color: #ffa0a0;
+	font-size:14pt;
+	text-align: center;
+	border-radius: 4px;
+	padding:0.4em;
+	margin:0.5em 10%;
+}
 #message {
 	background-color: #e0e0e0;
 	border:1px solid rgba(0,0,0,0.1);

@@ -101,16 +101,16 @@ function expire_messages() {
 	}
 }
 
-function templateSimple($message) {
+function templateSimple($message, $data=[]) {
 	// sanitises the message to ensure it's html safe. eg < becomes &lt;
-	templateHtml(htmlspecialchars($message));
+	templateHtml(htmlspecialchars($message), $data);
 }
-function templateLoad($file) {
+function templateLoad($file, $data=[]) {
 	ob_start();
 	include(OT_SRC_PATH.'views/'.$file);
-	templateHtml(ob_get_clean());
+	templateHtml(ob_get_clean(), $data);
 }
-function templateHtml($contents) { // NB: This parameter's name is important. It is used in the template itself
+function templateHtml($contents, $data=[]) { // NB: This parameter's name is important. It is used in the template itself
 	// uses the template, allowing unescaped HTML to be provided
 	require(OT_SRC_PATH.'views/template.php');
 }
@@ -312,9 +312,21 @@ function main() {
 		}
 		else
 		{
+			$errors = '';
+			if (!empty($_POST)) {
+				if (empty($_POST["message"]))
+					$errors .= "Please fill out a message!<br>\n";
+				if (empty($_POST["csrf_token"]))
+					$errors .= "Missing CSRF Token<br>\n";
+				if (empty($_SESSION["csrf_token"]))
+					$errors .= "Missing CSRF Session. Did you hit refresh?<br>\n";
+				if (!empty($_POST["csrf_token"]) && !empty($_SESSION["csrf_token"]) && $_POST["csrf_token"]!=$_SESSION['csrf_token'])
+					$errors .= "CSRF Token mismatch!: <br>". $_POST["csrf_token"] ." vs ". $_SESSION["csrf_token"]."<br>\n";
+			} 
 		    $_SESSION['csrf_token'] = randomToken(); // make a new csrf token every time we open the form
 		    unset($_POST);
-			templateLoad('form.php');
+		    $data["errors"] = $errors;
+			templateLoad('form.php', $data);
 		}
 	}
 }

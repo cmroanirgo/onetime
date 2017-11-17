@@ -10,7 +10,27 @@ $expiry_time = calc_expiry();
 </style>
 <?php if (defined('OT_RECAPTCHA')) { ?>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<?php } 
+
+if ($data['errors']) { ?>
+<div class="errors"><?php echo $data['errors']?></div>
 <?php } ?>
+
+<form id='message-form' method="POST">
+	<label for='message'>Enter your one time message:</label>
+	<textarea name='message'></textarea>
+
+	<label for='email'>Optional. E-mail address of the recipient:</label>
+	<input name='email' type='email'/><br>
+
+	<label for='password' class='small'>Optional. Password<sup>*</sup>:</label>
+	<input name='password' id="password" type='text' class='small'/><button class="small" id="generate" onclick="onGenerate();return false;">Generate</button><br>
+	
+	<label class="small">This message will expire on: <?php echo $expiry_time;?>.</label>
+	<button class="g-recaptcha" data-sitekey="<?php echo OT_RECAPTCHA; ?>" data-callback="onSubmit">Submit</button>
+	<p class='small italics'><sup>*</sup>You will need to SMS your password to the recipient manually. The longer, the better.</p>
+	<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
+</form>
 <script>
 	function el(id) { return document.getElementById(id); }
 	function onSubmit(token) {
@@ -113,19 +133,3 @@ $expiry_time = calc_expiry();
 		el('password').value = wordIsh(7, 5).join('-');
 	}
  </script>
-
-<form id='message-form' method="POST">
-	<label for='message'>Enter your one time message:</label>
-	<textarea name='message'></textarea>
-
-	<label for='email'>Optional. E-mail address of the recipient:</label>
-	<input name='email' type='email'/><br>
-
-	<label for='password' class='small'>Optional. Password<sup>*</sup>:</label>
-	<input name='password' id="password" type='text' class='small'/><button class="small" id="generate" onclick="onGenerate();return false;">Generate</button><br>
-	
-	<label class="small">This message will expire on: <?php echo $expiry_time;?>.</label>
-	<button class="g-recaptcha" data-sitekey="<?php echo OT_RECAPTCHA; ?>" data-callback="onSubmit">Submit</button>
-	<p class='small italics'><sup>*</sup>You will need to SMS your password to the recipient manually. The longer, the better.</p>
-	<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>" />
-</form>

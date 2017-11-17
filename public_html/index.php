@@ -235,13 +235,15 @@ function main() {
 	else {
 
 		session_start();
+		if (!isset($_SESSION['csrf_token']))
+	    	$_SESSION['csrf_token'] = randomToken(); // make a new csrf token
 
 		//echo "\nPOST CSRF".$_POST["csrf_token"];
 		//echo "\nSESS CSRF".$_SESSION["csrf_token"];
 		if (!empty($_POST) && !empty($_POST["message"]) && !empty($_POST["csrf_token"]) && !empty($_SESSION["csrf_token"]) && $_POST["csrf_token"]==$_SESSION['csrf_token'])
 		{
 			//reset the csrf session token.
-			unset($_SESSION['csrf_token']);
+			unset($_SESSION['csrf_token']); // force a new session token once a message sent. Stops Refresh errors
 
 			$file =  randomToken(OT_KEY_LENGTH);
 			$n = 0;
@@ -318,12 +320,11 @@ function main() {
 					$errors .= "Please fill out a message!<br>\n";
 				//if (empty($_POST["csrf_token"]))
 				//	$errors .= "Missing CSRF Token<br>\n";
-				if (empty($_SESSION["csrf_token"]))
-					$errors .= "Missing CSRF Session. Did you hit refresh?<br>\n";
+				//if (empty($_SESSION["csrf_token"]))
+				//	$errors .= "Missing CSRF Session. Did you hit refresh?<br>\n";
 				//if (!empty($_POST["csrf_token"]) && !empty($_SESSION["csrf_token"]) && $_POST["csrf_token"]!=$_SESSION['csrf_token'])
 				//	$errors .= "CSRF Token mismatch!: <br>". $_POST["csrf_token"] ." vs ". $_SESSION["csrf_token"]."<br>\n";
 			} 
-		    $_SESSION['csrf_token'] = randomToken(); // make a new csrf token every time we open the form
 		    unset($_POST);
 		    $data["errors"] = $errors;
 			templateLoad('form.php', $data);
